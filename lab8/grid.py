@@ -5,7 +5,6 @@ import math
 
 # grid map class
 class CozGrid:
-    
     def __init__(self, fname):
         with open(fname) as configfile:
             config = json.loads(configfile.read())
@@ -38,7 +37,7 @@ class CozGrid:
 
     def is_in(self, x, y):
         """ Determain whether the cell is in the grid map or not
-            Argument: 
+            Argument:
             x, y - X and Y in the cell map
             Return: boolean results
         """
@@ -48,15 +47,15 @@ class CozGrid:
 
     def is_free(self, x, y):
         """ Determain whether the cell is in the *free part* of grid map or not
-            Argument: 
+            Argument:
             x, y - X and Y in the cell map
             Return: boolean results
         """
         if not self.is_in(x, y):
             return False
-        yy = int(y) # self.height - int(y) - 1
+        yy = int(y)  # self.height - int(y) - 1
         xx = int(x)
-        return (xx, yy) not in self.occupied 
+        return (xx, yy) not in self.occupied
 
     def random_place(self):
         """ Return a random place in the map

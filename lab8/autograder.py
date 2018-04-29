@@ -17,7 +17,7 @@ Map_filename = "map_test.json"
 """ Autograder rubric
     Total score = 100, two stage:
     1.  Build tracking:
-        if the filter can build tracking and output correct robot transformation 
+        if the filter can build tracking and output correct robot transformation
         in error tolarance anytime in 100 steps, give 50 points
     2.  Maintain tracking:
         let the filter run 100 steps, give score
@@ -39,18 +39,18 @@ Err_rot = 10
         Robot_init_pose: initial robot transformation (X, Y, yaw in deg)
         Dh_circular: Angle (in degree) to turn per run in circle motion mode
     Here we give 5 example circles you can test, just uncomment the one you like
-    But note that in real grading we will use *another* 5 different circles, 
+    But note that in real grading we will use *another* 5 different circles,
     so don't try to hack anything!
 """
 # example circle 1
 Robot_init_pose = (6, 3, 0)
 Dh_circular = 10
-Robot_speed = 0.5 
+Robot_speed = 0.5
 """
 # example circle 2
 Robot_init_pose = (5, 1, 0)
 Dh_circular = 6
-Robot_speed = 0.5 
+Robot_speed = 0.5
 
 # example circle 3
 Robot_init_pose = (5, 4, 0)
@@ -70,6 +70,8 @@ Robot_speed = 0.5
 
 # move robot circular
 # if in collsion throw error
+
+
 def move_robot_circular(robot, dh, speed, grid):
     old_x, old_y = robot.x, robot.y
     old_heading = robot.h
@@ -82,9 +84,7 @@ def move_robot_circular(robot, dh, speed, grid):
     return (dx, dy, dh)
 
 
-
 class ParticleFilter:
-
     def __init__(self, particles, robbie, grid):
         self.particles = particles
         self.robbie = robbie
@@ -93,13 +93,12 @@ class ParticleFilter:
     def update(self):
 
         # ---------- Move Robot ----------
-        odom = add_odometry_noise(move_robot_circular(self.robbie, Dh_circular, Robot_speed, self.grid), \
-            heading_sigma=ODOM_HEAD_SIGMA, trans_sigma=ODOM_TRANS_SIGMA)
-
+        odom = add_odometry_noise(move_robot_circular(self.robbie, Dh_circular, Robot_speed, self.grid),
+                                  heading_sigma=ODOM_HEAD_SIGMA,
+                                  trans_sigma=ODOM_TRANS_SIGMA)
 
         # ---------- Motion model update ----------
         self.particles = motion_update(self.particles, odom)
-
 
         # ---------- Find markers in camera ----------
         # read markers
@@ -109,13 +108,12 @@ class ParticleFilter:
         # add noise to marker list
         r_marker_list = []
         for m in r_marker_list_raw:
-            r_marker_list.append(add_marker_measurement_noise(m, \
-                trans_sigma=MARKER_TRANS_SIGMA, rot_sigma=MARKER_ROT_SIGMA))
-
+            r_marker_list.append(add_marker_measurement_noise(m,
+                                                              trans_sigma=MARKER_TRANS_SIGMA,
+                                                              rot_sigma=MARKER_ROT_SIGMA))
 
         # ---------- Sensor (markers) model update ----------
         self.particles = measurement_update(self.particles, r_marker_list, self.grid)
-
 
         # ---------- Show current state ----------
         # Try to find current best estimate for display
@@ -123,11 +121,9 @@ class ParticleFilter:
         return (m_x, m_y, m_h, m_confident)
 
 
-
 if __name__ == "__main__":
-
     grid = CozGrid(Map_filename)
-    
+
     # initial distribution assigns each particle an equal probability
     particles = Particle.create_random(PARTICLE_COUNT, grid)
     robbie = Robot(Robot_init_pose[0], Robot_init_pose[1], Robot_init_pose[2])
@@ -140,7 +136,7 @@ if __name__ == "__main__":
     for i in range(0, Steps_build_tracking):
 
         est_pose = particlefilter.update()
-        
+
         if grid_distance(est_pose[0], est_pose[1], robbie.x, robbie.y) < Err_trans \
                 and math.fabs(diff_heading_deg(est_pose[2], robbie.h)) < Err_rot \
                 and i+1 < steps_built_track:

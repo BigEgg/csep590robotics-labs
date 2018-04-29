@@ -18,29 +18,29 @@ def rotate_point(x, y, heading_deg):
     return xr, yr
 
 
-# heading angle difference = heading1 - heading2 
+# heading angle difference = heading1 - heading2
 # return value always in range (-180, 180] in deg
 def diff_heading_deg(heading1, heading2):
-	dh = heading1 - heading2
-	while dh > 180:
-		dh -= 360
-	while dh <= -180:
-		dh += 360
-	return dh
+    dh = heading1 - heading2
+    while dh > 180:
+        dh -= 360
+    while dh <= -180:
+        dh += 360
+    return dh
 
 
 def compute_mean_pose(particles, confident_dist=1):
     """ Compute the mean pose for all particles
-    	This is not part of the particle filter algorithm but rather an
-    	addition to show the "best belief" for current pose
+        This is not part of the particle filter algorithm but rather an
+        addition to show the "best belief" for current pose
     """
     m_x, m_y, m_count = 0, 0, 0
     # for rotation average
     m_hx, m_hy = 0, 0
     for p in particles:
         m_count += 1
-        m_x += p.x 
-        m_y += p.y 
+        m_x += p.x
+        m_y += p.y
         m_hx += math.sin(math.radians(p.h))
         m_hy += math.cos(math.radians(p.h))
 
@@ -53,7 +53,7 @@ def compute_mean_pose(particles, confident_dist=1):
     # average rotation
     m_hx /= m_count
     m_hy /= m_count
-    m_h = math.degrees(math.atan2(m_hx, m_hy));
+    m_h = math.degrees(math.atan2(m_hx, m_hy))
 
     # Now compute how good that mean is -- check how many particles
     # actually are in the immediate vicinity
