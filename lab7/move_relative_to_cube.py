@@ -5,6 +5,7 @@ This is starter code for Lab 7.
 
 '''
 
+import asyncio
 import cozmo
 from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps
 import math
@@ -12,6 +13,8 @@ import time
 import sys
 
 from odometry import cozmo_go_to_pose
+from odometry import my_go_to_pose3
+from odometry import my_turn_in_place
 sys.path.insert(0, '../lab6')
 from pose_transform import get_relative_pose
 
@@ -24,25 +27,24 @@ def move_relative_to_cube(robot: cozmo.robot.Robot):
     robot.set_head_angle(degrees(0)).wait_for_completed()
     cube = None
 
-    while cube is None:
+    while True:
         try:
-            cube = robot.world.wait_for_observed_light_cube(timeout=30)
+            robot.say_text('searching').wait_for_completed()
+            cube = robot.world.wait_for_observed_light_cube(timeout=5)
             if cube:
-                print("Found a cube, pose in the robot coordinate frame: %s" %
-                      get_relative_pose(cube.pose, robot.pose))
+                robot.say_text('Found it').wait_for_completed()
+                break
         except asyncio.TimeoutError:
-            print("Didn't find a cube")
+            my_turn_in_place(robot, 30, 50, True)
 
-    desired_pose_relative_to_cube = Pose(0, 100, 0, angle_z=degrees(90))
+    relative_pose = get_relative_pose(cube.pose, robot.pose)
+    print(f"Found a cube, pose in the robot coordinate frame: {relative_pose}")
 
-    # ####
-    # TODO: Make the robot move to the given desired_pose_relative_to_cube.
-    # Use the get_relative_pose function your implemented to determine the
-    # desired robot pose relative to the robot's current pose and then use
-    # one of the go_to_pose functions you implemented in Lab 6.
-    # ####
+    my_go_to_pose3(robot, relative_pose.position.x, relative_pose.position.y, relative_pose.rotation.angle_z.degrees)
+
+    robot.say_text('Arrived').wait_for_completed()
+    robot.play_anim_trigger(cozmo.anim.Triggers.FistBumpSuccess).wait_for_completed()
 
 
 if __name__ == '__main__':
-
-    cozmo.run_program(move_relative_to_cube)
+    cozmo.run_program(move_relative_to_cube, use_viewer = True, force_viewer_on_top = True)

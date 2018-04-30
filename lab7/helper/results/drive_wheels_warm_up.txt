@@ -1,0 +1,23 @@
+2018-04-26 23:08:54,875 cozmo.general INFO     App connection established. sdk_version=1.4.0 cozmoclad_version=2.5.0 app_build_version=00002.00005.00000
+2018-04-26 23:08:54,875 cozmo.general INFO     Found robot id=1
+2018-04-26 23:08:54,875 cozmo.general INFO     Connected to iOS device_id=2 serial=3c1bd989ffd91e62f8838c32c68ee18e9fb19156
+2018-04-26 23:08:55,093 cozmo.general INFO     Robot id=1 serial=43200e71 initialized OK
+No move when duration is 0.1
+No move when duration is 0.2
+No move when duration is 0.3
+No move when duration is 0.4
+No move when duration is 0.5
+No move when duration is 0.6
+No move when duration is 0.7
+No move when duration is 0.8
+No move when duration is 0.9
+Start moving when duration is 1.0, distance: 0.92828369140625
+Warm up time by duration is 0.9
+Not moved enought distance when duration is 0.1, delta: 6.10711669921875
+Not moved enought distance when duration is 0.2, delta: 11.44268798828125
+Not moved enought distance when duration is 0.3, delta: 5.3388671875
+Not moved enought distance when duration is 0.4, delta: 8.5101318359375
+Moved enought distance, duration: 0.5
+Warm up time by distance is 0.5
+2018-04-26 23:09:25,579 cozmo.general INFO     Shutting down connection
+2018-04-26 23:09:25,579 cozmo.general INFO     iOS device_id=2 disconnected.
