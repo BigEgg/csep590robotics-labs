@@ -19,9 +19,9 @@ def motion_update(particles, odom):
     for particle in particles:
         #   Move particle in the exact same way, but add noise to each movement
         (dx, dy, dh) = add_odometry_noise(odom, ODOM_HEAD_SIGMA, ODOM_TRANS_SIGMA)
-        # (dx, dy, dh) = odom
         #   Rotate the *robot frame* location to *world frame*
-        (dx, dy) = rotate_point(dx, dy, dh)
+        (dx, dy) = rotate_point(dx, dy, particle.h)
+
         motion_particles.append(Particle(particle.x + dx, particle.y + dy, particle.h + dh))
     return motion_particles
 
