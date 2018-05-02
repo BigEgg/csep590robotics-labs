@@ -62,8 +62,8 @@ def measurement_update(particles, measured_marker_list, grid):
             has_weight = True
         weights.append(likely_hood)
 
-    #resample 90% of the particle, and add 10% random particle uni
-    resample_rate = 0.9
+    #resample 95% of the particle, and add 10% random particle uni
+    resample_rate = 0.95
     if not has_weight:
         #   In some case their had no weight after the calculation
         measured_particles = random.choices(particles, k=(int)(resample_rate * len(particles)))
