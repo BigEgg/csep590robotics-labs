@@ -54,21 +54,23 @@ def measurement_update(particles, measured_marker_list, grid):
     has_weight = False
     for particle in particles:
         particle_measured_marker = particle.read_markers(grid)
-        likely_hood = 0
+        likely_hood = 0     # Default likely hood is zero
         for measurement1 in measured_marker_list:
             for measurement2 in particle_measured_marker:
+                # Calculate the likely hood based on measurement from robot and partical
                 likely_hood += measurement_prob(measurement1, measurement2)
         if likely_hood != 0:
             has_weight = True
         weights.append(likely_hood)
 
-    #resample 95% of the particle, and add 10% random particle uni
+    # Resample 95% of the particle, and add 10% random particle uni
     resample_rate = 0.95
     if not has_weight:
-        #   In some case their had no weight after the calculation
+        # In some case their had no weight after the calculation
         measured_particles = random.choices(particles, k=(int)(resample_rate * len(particles)))
     else:
         measured_particles = random.choices(particles, weights=weights, k=(int)(resample_rate * len(particles)))
+    # Add the uniformly distributed, random samples
     measured_particles.extend(Particle.create_random((int)((1 - resample_rate) * len(particles)), grid))
 
     return measured_particles
@@ -78,9 +80,10 @@ def measurement_prob(measurement1, measurement2):
     (x0, y0, h0) = measurement1
     (x1, y1, h1) = measurement2
     (delta_x, delta_y, delta_h) = (x1 - x0, y1 - y0, h1 - h0)
-
-    dist = math.sqrt(delta_x ** 2 + delta_y ** 2)
     return gaussian(0, MARKER_TRANS_SIGMA, delta_x) * gaussian(0, MARKER_TRANS_SIGMA, delta_y) * gaussian(0, MARKER_ROT_SIGMA, math.radians(delta_h))
+
+    # dist = math.sqrt(delta_x ** 2 + delta_y ** 2)
+    # return gaussian(0, MARKER_TRANS_SIGMA, dist) * gaussian(0, MARKER_ROT_SIGMA, math.radians(delta_h))
 
 
 def gaussian(mu, sigma, x):
