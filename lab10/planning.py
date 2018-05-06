@@ -4,22 +4,6 @@ import threading
 from queue import PriorityQueue
 import math
 import cozmo
-import heapq
-
-
-class PriorityQueue:
-    def __init__(self):
-        self.elements = []
-
-    def empty(self):
-        return len(self.elements) == 0
-
-    def put(self, item, priority):
-        heapq.heappush(self.elements, (priority, item))
-
-    def get(self):
-        return heapq.heappop(self.elements)[1]
-
 
 def astar(grid, heuristic):
     """Perform the A* search algorithm on a defined grid
@@ -32,14 +16,14 @@ def astar(grid, heuristic):
     goal_pose = grid.getGoals()[0]
 
     frontier = PriorityQueue()
-    frontier.put(start_pose, 0)
+    frontier.put((0, start_pose))
     came_from = {}
     cost_so_far = {}
     came_from[start_pose] = None
     cost_so_far[start_pose] = 0
 
     while not frontier.empty():
-        current = frontier.get()
+        current = frontier.get()[1]
         grid.addVisited(current)
 
         if current == goal_pose:
@@ -54,7 +38,7 @@ def astar(grid, heuristic):
             if next_pose not in cost_so_far or new_cost < cost_so_far[next_pose]:
                 cost_so_far[next_pose] = new_cost
                 priority = new_cost + heuristic(next_pose, goal_pose)
-                frontier.put(next_pose, priority)
+                frontier.put((priority, next_pose))
                 came_from[next_pose] = current
 
     raise ValueError('No Path Found')
