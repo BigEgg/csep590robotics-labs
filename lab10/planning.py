@@ -120,12 +120,13 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
                 robot.say_text('Arrived').wait_for_completed()
                 break
 
-        current_pose = grid.getPath()[path_index][0]
-        next_pose = grid.getPath()[path_index + 1][0]
-        x = (next_pose - current_pose) * grid.scale
-        y = (next_pose - current_pose) * grid.scale
-        degree = 0 if x == 0 else degrees(math.atan(y / x))
-        robot.go_to_pose(Pose(x, y, 0, angle_z=degree), relative_to_robot=True).wait_for_completed()
+        current_pose = grid.getPath()[path_index]
+        next_pose = grid.getPath()[path_index + 1]
+        x = (next_pose[0] - current_pose[0]) * grid.scale
+        y = (next_pose[1] - current_pose[1]) * grid.scale
+        degree = (0 if x == 0 else degrees(math.atan(y / x))) - robot.pose.rotation.angle_z.degrees
+        robot.turn_in_place(Angle(degrees=degree))
+        robot.go_to_pose(Pose(math.sqrt(x**2, y**2), 0, 0, angle_z=0), relative_to_robot=True).wait_for_completed()
 
     stopevent.wait()
 
