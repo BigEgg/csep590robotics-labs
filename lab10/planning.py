@@ -28,8 +28,48 @@ def astar(grid, heuristic):
         grid -- CozGrid instance to perform search on
         heuristic -- supplied heuristic function
     """
+    start_pose = grid.getStart()
+    goal_pose = grid.getGoals()[0]
 
-    pass  # Your code here
+    frontier = PriorityQueue()
+    frontier.put(start_pose, 0)
+    came_from = {}
+    cost_so_far = {}
+    came_from[start_pose] = None
+    cost_so_far[start_pose] = 0
+
+    while not frontier.empty():
+        current = frontier.get()
+        grid.addVisited(current)
+
+        if current == goal_pose:
+            path = reconstruct_path(came_from, start_pose, goal_pose)
+            grid.setPath(path)
+            return
+
+        for next in grid.getNeighbors(current):
+            next_pose, next_weight = next[0], next[1]
+            new_cost = cost_so_far[current] + next_weight
+
+            if next_pose not in cost_so_far or new_cost < cost_so_far[next_pose]:
+                cost_so_far[next_pose] = new_cost
+                priority = new_cost + heuristic(next_pose, goal_pose)
+                frontier.put(next_pose, priority)
+                came_from[next_pose] = current
+
+    raise ValueError('No Path Found')
+
+
+def reconstruct_path(came_from, start, goal):
+    current = goal
+    path = []
+    while current != start:
+        path.append(current)
+        current = came_from[current]
+
+    path.append(start)
+    path.reverse()
+    return path
 
 
 def heuristic(current, goal):
@@ -39,8 +79,9 @@ def heuristic(current, goal):
         current -- current cell
         goal -- desired goal cell
     """
-
-    return 1  # Your code here
+    (current_x, current_y) = current
+    (goal_x, goal_y) = goal
+    return abs(current_x - goal_x) + abs(current_y - goal_y)
 
 
 def cozmoBehavior(robot: cozmo.robot.Robot):
