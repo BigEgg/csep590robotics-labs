@@ -88,6 +88,7 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
 
     grid.addGoal((grid.width / 2, grid.height / 2))
     found_goal = False
+    goal_angle = 0
     astar(grid, heuristic)
     path = grid.getPath()
     path_index = 0
@@ -100,7 +101,7 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
             if new_cube.cube_id == LightCube1Id:
                 new_cube.set_lights(cozmo.lights.blue_light)
                 robot.say_text("It's the Goal").wait_for_completed()
-                get_goal(grid, new_cube, grid_init_start_pose)   # Update the goal coordinate while found cube 1
+                goal_angle = get_goal(grid, new_cube, grid_init_start_pose)   # Update the goal coordinate while found cube 1
                 found_goal = True
             else:
                 new_cube.set_lights(cozmo.lights.red_light)
@@ -121,6 +122,7 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
                 robot.turn_in_place(Angle(degrees=30)).wait_for_completed()
             else:                   # Arrived the final place
                 robot.say_text('Arrived').wait_for_completed()
+                robot.turn_in_place(Angle(degrees=goal_angle - robot.pose.rotation.angle_z.degrees)).wait_for_completed()
                 break
 
         current_pose = grid.getPath()[path_index]
@@ -180,6 +182,7 @@ def get_goal(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose)
             cube.pose.position.y + goal_y,
             grid_init_start_pose)
     )
+    return cube.pose.rotation.angle_z.degrees
 
 
 def rotate_point(x, y, heading_deg):
