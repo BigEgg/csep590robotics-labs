@@ -81,7 +81,7 @@ def heuristic(current, goal):
     """
     (current_x, current_y) = current
     (goal_x, goal_y) = goal
-    return abs(current_x - goal_x) + abs(current_y - goal_y)
+    return math.sqrt((current_x - goal_x)**2 + (current_y - goal_y)**2)
 
 
 def cozmoBehavior(robot: cozmo.robot.Robot):
