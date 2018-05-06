@@ -4,6 +4,7 @@ import threading
 from queue import PriorityQueue
 import math
 import cozmo
+import asyncio
 
 from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id
 from cozmo.util import degrees, Angle, Pose
@@ -85,11 +86,11 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
 
     global grid, stopevent
 
-    grid.addGoal((grid.height / 2, grid.width / 2))
+    grid.addGoal((grid.width / 2, grid.height / 2))
     found_goal = False
     astar(grid, heuristic)
-    path_index = 0
     path = grid.getPath()
+    path_index = 0
     grid_init_start_pose = grid.getStart()
     robot.say_text('Game is on').wait_for_completed()
     while not stopevent.is_set():
@@ -98,16 +99,18 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
             add_obstacle(grid, new_cube, grid_init_start_pose)    # Add the obstacle for all cubes that had been found
             if new_cube.cube_id == LightCube1Id:
                 new_cube.set_lights(cozmo.lights.blue_light)
-                robot.say_text('Found the Goal').wait_for_completed()
+                robot.say_text("It's the Goal").wait_for_completed()
                 get_goal(grid, new_cube, grid_init_start_pose)   # Update the goal coordinate while found cube 1
                 found_goal = True
             else:
                 new_cube.set_lights(cozmo.lights.red_light)
-                robot.say_text('Found an Obstacle').wait_for_completed()
+                robot.say_text("It's an Obstacle").wait_for_completed()
 
             # Replanning the path for
             robot.say_text('Replanning').wait_for_completed()
+            grid.clearStart()
             grid.clearVisited()
+            grid.clearPath()
             grid.setStart(position_to_grid(grid, robot.pose.position.x, robot.pose.position.y, grid_init_start_pose))
             astar(grid, heuristic)
             path_index = 0
@@ -115,7 +118,7 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
 
         if path_index >= len(path): # At the goal position
             if not found_goal:      # At the center of grid
-                robot.turn_in_place(Angle(degrees=30))
+                robot.turn_in_place(Angle(degrees=30)).wait_for_completed()
             else:                   # Arrived the final place
                 robot.say_text('Arrived').wait_for_completed()
                 break
@@ -124,25 +127,27 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
         next_pose = grid.getPath()[path_index + 1]
         x = (next_pose[0] - current_pose[0]) * grid.scale
         y = (next_pose[1] - current_pose[1]) * grid.scale
-        degree = (0 if x == 0 else degrees(math.atan(y / x))) - robot.pose.rotation.angle_z.degrees
-        robot.turn_in_place(Angle(degrees=degree))
-        robot.go_to_pose(Pose(math.sqrt(x**2, y**2), 0, 0, angle_z=0), relative_to_robot=True).wait_for_completed()
+        degree = (0 if x == 0 else math.degrees(math.atan2(y / x))) - robot.pose.rotation.angle_z.degrees
+        robot.turn_in_place(Angle(degrees=degree)).wait_for_completed()
+        robot.go_to_pose(Pose(math.sqrt(x**2 + y**2), 0, 0, angle_z=Angle(degrees=0)), relative_to_robot=True).wait_for_completed()
+        path_index += 1
 
     stopevent.wait()
 
 
 def search_cube(robot: cozmo.robot.Robot, grid: CozGrid):
-    robot.say_text('searching').wait_for_completed()
-    cube = robot.world.wait_for_observed_light_cube(timeout=5, include_existing=False)
-    if cube:
-        robot.say_text('Found a Cube').wait_for_completed()
-        return cube
-    else:
+    try:
+        robot.say_text('searching').wait_for_completed()
+        cube = robot.world.wait_for_observed_light_cube(timeout=3, include_existing=False)
+        if cube:
+            robot.say_text('Found a Cube').wait_for_completed()
+            return cube
+    except asyncio.TimeoutError:
         return None
 
 
 def add_obstacle(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose):
-    cube_size = 50
+    cube_size = grid.scale
     for x in range(-cube_size, cube_size + 1, grid.scale):
         for y in range(-cube_size, cube_size + 1, grid.scale):
             (obstacle_x, obstacle_y) = rotate_point(x, y, cube.pose.rotation.angle_z.degrees)
@@ -156,15 +161,17 @@ def add_obstacle(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_p
 
 
 def position_to_grid(grid: CozGrid, x, y, grid_init_start_pose):
+    x = (int)(x)
+    y = (int)(y)
     (init_x, init_y) = grid_init_start_pose
-    return (x / grid.scale + init_x,
-            y / grid.scale + init_y)
+    result = ((int)(x / grid.scale + init_x), (int)(y / grid.scale + init_y))
+    return result
 
 
 def get_goal(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose):
-    cube_size = 50
+    cube_size = grid.scale
     # Cube right and back will be the picture, choose right this time
-    (goal_x, goal_y) = rotate_point(0, -cube_size, cube.pose.rotation.angle_z.degrees)
+    (goal_x, goal_y) = rotate_point(0, -cube_size * 2, cube.pose.rotation.angle_z.degrees)
     grid.clearGoals()
     grid.addGoal(
         position_to_grid(
@@ -193,7 +200,7 @@ class RobotThread(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
     def run(self):
-        cozmo.run_program(cozmoBehavior)
+        cozmo.run_program(cozmoBehavior, use_viewer = True, force_viewer_on_top = True)
 
 
 # If run as executable, start RobotThread and launch visualizer with empty grid file
