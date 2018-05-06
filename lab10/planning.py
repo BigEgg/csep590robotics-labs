@@ -85,7 +85,7 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
 
     global grid, stopevent
 
-    goal = (grid.height / 2, grid.width / 2)
+    grid.addGoal((grid.height / 2, grid.width / 2))
     found_goal = False
     astar(grid, heuristic)
     path_index = 0
@@ -107,6 +107,8 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
 
             # Replanning the path for
             robot.say_text('Replanning').wait_for_completed()
+            grid.clearVisited()
+            grid.setStart(position_to_grid(grid, robot.pose.position.x, robot.pose.position.y, grid_init_start_pose))
             astar(grid, heuristic)
             path_index = 0
             path = grid.getPath()
