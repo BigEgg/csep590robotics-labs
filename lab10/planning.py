@@ -1,14 +1,9 @@
-
-#author1:
-#author2:
-
 from grid import *
 from visualizer import *
 import threading
 from queue import PriorityQueue
 import math
 import cozmo
-
 
 
 def astar(grid, heuristic):
@@ -18,8 +13,8 @@ def astar(grid, heuristic):
         grid -- CozGrid instance to perform search on
         heuristic -- supplied heuristic function
     """
-        
-    pass # Your code here
+
+    pass  # Your code here
 
 
 def heuristic(current, goal):
@@ -29,8 +24,8 @@ def heuristic(current, goal):
         current -- current cell
         goal -- desired goal cell
     """
-        
-    return 1 # Your code here
+
+    return 1  # Your code here
 
 
 def cozmoBehavior(robot: cozmo.robot.Robot):
@@ -44,11 +39,11 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
         Arguments:
         robot -- cozmo.robot.Robot instance, supplied by cozmo.run_program
     """
-        
+
     global grid, stopevent
-    
+
     while not stopevent.is_set():
-        pass # Your code here
+        pass  # Your code here
 
 
 ######################## DO NOT MODIFY CODE BELOW THIS LINE ####################################
@@ -57,7 +52,7 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
 class RobotThread(threading.Thread):
     """Thread to run cozmo code separate from main thread
     """
-        
+
     def __init__(self):
         threading.Thread.__init__(self, daemon=True)
 
@@ -77,4 +72,3 @@ if __name__ == "__main__":
     robot.start()
     visualizer.start()
     stopevent.set()
-
