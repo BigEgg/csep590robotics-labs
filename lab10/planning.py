@@ -95,6 +95,9 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
     path = grid.getPath()
     path_index = 0
     grid_init_start_pose = grid.getStart()
+
+    robot.set_head_angle(degrees(0)).wait_for_completed()
+    robot.move_lift(-3)
     robot.say_text('Game is on').wait_for_completed()
     while not stopevent.is_set():
         new_cube = search_cube(robot, grid)
@@ -185,6 +188,16 @@ def get_goal(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose)
     grid.clearGoals()
     # Cube right and back will be the picture, choose right this time
     (goal_x, goal_y) = rotate_point(- grid.scale * 2 * 2, 0, cube.pose.rotation.angle_z.degrees) # Back
+    goal_degree = cube.pose.rotation.angle_z.degrees
+    if not grid.coordInBounds(
+        position_to_grid(
+            grid,
+            cube.pose.position.x + goal_x,
+            cube.pose.position.y + goal_y,
+            grid_init_start_pose)):
+        (goal_x, goal_y) = rotate_point(0, - grid.scale * 2 * 2, cube.pose.rotation.angle_z.degrees) # Right
+        goal_degree = cube.pose.rotation.angle_z.degrees + 90
+
     grid.addGoal(
         position_to_grid(
             grid,
@@ -192,7 +205,7 @@ def get_goal(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose)
             cube.pose.position.y + goal_y,
             grid_init_start_pose)
     )
-    return cube.pose.rotation.angle_z.degrees
+    return goal_degree
 
 
 def rotate_point(x, y, heading_deg):
