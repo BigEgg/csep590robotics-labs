@@ -80,10 +80,12 @@ def measurement_prob(measurement1, measurement2):
     (x0, y0, h0) = measurement1
     (x1, y1, h1) = measurement2
     (delta_x, delta_y, delta_h) = (x1 - x0, y1 - y0, h1 - h0)
-    return gaussian(0, MARKER_TRANS_SIGMA, delta_x) * gaussian(0, MARKER_TRANS_SIGMA, delta_y) * gaussian(0, MARKER_ROT_SIGMA, math.radians(delta_h))
+    # Average Score is: 97.10987903225806
+    # return gaussian(0, MARKER_TRANS_SIGMA, delta_x) * gaussian(0, MARKER_TRANS_SIGMA, delta_y) * gaussian(0, MARKER_ROT_SIGMA, math.radians(delta_h))
 
-    # dist = math.sqrt(delta_x ** 2 + delta_y ** 2)
-    # return gaussian(0, MARKER_TRANS_SIGMA, dist) * gaussian(0, MARKER_ROT_SIGMA, math.radians(delta_h))
+    # Average Score is: 97.12903225806451
+    dist = math.sqrt(delta_x ** 2 + delta_y ** 2)
+    return gaussian(0, MARKER_TRANS_SIGMA, dist) * gaussian(0, MARKER_ROT_SIGMA, math.radians(delta_h))
 
 
 def gaussian(mu, sigma, x):
