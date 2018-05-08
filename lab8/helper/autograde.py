@@ -182,28 +182,30 @@ def grade_core(grid, Robot_init_pose, Dh_circular, Robot_speed):
 
 
 def auto_core(grid):
-    for init_x in range(1, 10, 1):
-        for init_y in range(1, 10, 1):
-            for init_rotation in range(0, 181, 15):
-                for circular_size in range(3, 22, 3):
-                    for speed in range(3, 8, 1):
+    scores = []
+    for init_x in range(1, 10, 2):
+        for init_y in range(1, 10, 2):
+            for init_rotation in range(0, 181, 45):
+                for circular_size in range(3, 22, 5):
+                    for speed in range(3, 8, 2):
                         Robot_init_pose = (init_x, init_y, init_rotation)
                         Dh_circular = circular_size
                         Robot_speed = speed / 10
                         try:
                             score = grade_core(grid, Robot_init_pose, Dh_circular, Robot_speed)
+                            scores.append(score)
                             print(f'Score: {score}, on init at: {Robot_init_pose}, circular size: {Dh_circular}, speed: {Robot_speed}')
                         except:
-                            # print(f'Collision happened, on init at: {Robot_init_pose}, circular size: {Dh_circular}, speed: {Robot_speed}')
+                            print(f'Collision happened, on init at: {Robot_init_pose}, circular size: {Dh_circular}, speed: {Robot_speed}')
                             pass
+    print(f'Mean Score: {mean(scores)}')
+
+
+def mean(numbers):
+    return float(sum(numbers)) / max(len(numbers), 1)
 
 
 if __name__ == "__main__":
     grid = CozGrid(Map_filename)
     auto_core(grid)
-    # Robot_init_pose = (6, 3, 0)
-    # Dh_circular = 10
-    # Robot_speed = 0.5
-    # score = grade_core(grid, Robot_init_pose, Dh_circular, Robot_speed)
-    # print(f'Score: {score}, on init at: {Robot_init_pose}, circular size: {Dh_circular}, speed: {Robot_speed}')
 
