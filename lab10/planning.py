@@ -85,6 +85,8 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
     """
 
     global grid, stopevent
+    global found_cubes
+    found_cubes = []
 
     grid.addGoal((grid.width / 2, grid.height / 2))
     found_goal = False
@@ -138,10 +140,12 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
 
 
 def search_cube(robot: cozmo.robot.Robot, grid: CozGrid):
+    global found_cubes
     try:
         robot.say_text('searching').wait_for_completed()
         cube = robot.world.wait_for_observed_light_cube(timeout=3, include_existing=False)
-        if cube:
+        if cube and cube.cube_id not in found_cubes:
+            found_cubes.append(cube.cube_id)        # Robot will always return found cubes
             robot.say_text('Found a Cube').wait_for_completed()
             return cube
     except asyncio.TimeoutError:
