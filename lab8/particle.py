@@ -6,12 +6,10 @@ from grid import *
 from setting import *
 
 
-
 """ Particle class (base class for robot)
     A class for particle, each particle contains x, y, and heading information
 """
 class Particle(object):
-
     # data members
     x = "X coordinate in world frame"
     y = "Y coordinate in world frame"
@@ -59,7 +57,7 @@ class Particle(object):
         for marker in grid.markers:
             m_x, m_y, m_h = parse_marker_info(marker[0], marker[1], marker[2])
             # rotate marker into robot frame
-            mr_x, mr_y = rotate_point(m_x - self.x, m_y - self.y, -self.h)
+            mr_x, mr_y = rotate_point(m_x - self.x, m_y - self.y, 0 - self.h)
             if math.fabs(math.degrees(math.atan2(mr_y, mr_x))) < ROBOT_CAMERA_FOV_DEG / 2.0:
                 mr_h = diff_heading_deg(m_h, self.h)
                 marker_list.append((mr_x, mr_y, mr_h))
@@ -72,7 +70,6 @@ class Particle(object):
     but with some more utitilies for robot motion / collision checking
 """
 class Robot(Particle):
-
     def __init__(self, x, y, h):
         super(Robot, self).__init__(x, y, h)
 
@@ -107,15 +104,15 @@ class Robot(Particle):
 
             Arguments:
             odom -- odometry to move (dx, dy, dh) in *robot local frame*
-        
+
             No return
         """
-        
+
         dx, dy = rotate_point(odom[0], odom[1], self.h)
         self.x += dx
         self.y += dy
         self.h = self.h + odom[2]
-        
+
 
     def check_collsion(self, odom, grid):
         """ Check whether moving the robot will cause collision.
@@ -123,7 +120,7 @@ class Robot(Particle):
 
             Arguments:
             odom -- odometry to move (dx, dy, dh) in robot local frame
-        
+
             Return: True if will cause collision, False if will not be a collision
         """
         dx, dy = rotate_point(odom[0], odom[1], self.h)

@@ -2,7 +2,9 @@ from __future__ import absolute_import
 
 import threading
 import time
+import sys
 
+sys.path.insert(0, '../')
 from grid import CozGrid
 from particle import Particle, Robot
 from setting import *
@@ -11,7 +13,7 @@ from utils import *
 
 
 # map file
-Map_filename = "map_test.json"
+Map_filename = "../map_test.json"
 
 
 """ Autograder rubric
@@ -42,10 +44,10 @@ Err_rot = 10
     But note that in real grading we will use *another* 5 different circles,
     so don't try to hack anything!
 """
-# example circle 1
-Robot_init_pose = (6, 3, 0)
-Dh_circular = 10
-Robot_speed = 0.5
+# # example circle 1
+# Robot_init_pose = (6, 3, 0)
+# Dh_circular = 10
+# Robot_speed = 0.5
 """
 # example circle 2
 Robot_init_pose = (5, 1, 0)
@@ -85,15 +87,17 @@ def move_robot_circular(robot, dh, speed, grid):
 
 
 class ParticleFilter:
-    def __init__(self, particles, robbie, grid):
+    def __init__(self, particles, robbie, grid, Dh_circular, Robot_speed):
         self.particles = particles
         self.robbie = robbie
         self.grid = grid
+        self.Dh_circular = Dh_circular
+        self.Robot_speed = Robot_speed
 
     def update(self):
 
         # ---------- Move Robot ----------
-        odom = add_odometry_noise(move_robot_circular(self.robbie, Dh_circular, Robot_speed, self.grid),
+        odom = add_odometry_noise(move_robot_circular(self.robbie, self.Dh_circular, self.Robot_speed, self.grid),
                                   heading_sigma=ODOM_HEAD_SIGMA,
                                   trans_sigma=ODOM_TRANS_SIGMA)
 
@@ -121,13 +125,11 @@ class ParticleFilter:
         return (m_x, m_y, m_h, m_confident)
 
 
-if __name__ == "__main__":
-    grid = CozGrid(Map_filename)
-
+def grade_core(grid, Robot_init_pose, Dh_circular, Robot_speed):
     # initial distribution assigns each particle an equal probability
     particles = Particle.create_random(PARTICLE_COUNT, grid)
     robbie = Robot(Robot_init_pose[0], Robot_init_pose[1], Robot_init_pose[2])
-    particlefilter = ParticleFilter(particles, robbie, grid)
+    particlefilter = ParticleFilter(particles, robbie, grid, Dh_circular, Robot_speed)
 
     score = 0
 
@@ -150,8 +152,6 @@ if __name__ == "__main__":
     else:
         score = 0
 
-    print("\nPhrase 1")
-    print("Number of steps to build track :", steps_built_track, "/", Steps_build_tracking)
     acc_err_trans, acc_err_rot = 0.0, 0.0
     max_err_trans, max_err_rot = 0.0, 0.0
     step_track = 0
@@ -178,11 +178,34 @@ if __name__ == "__main__":
             step_track += 1
             score += score_per_track
 
-    print("\nPhrase 2")
-    print("Number of steps error in threshold :", step_track, "/", Steps_stable_tracking)
-    print("Average translational error :", acc_err_trans / Steps_stable_tracking)
-    print("Average rotational error :", acc_err_rot / Steps_stable_tracking, "deg")
-    print("Max translational error :", max_err_trans)
-    print("Max rotational error :", max_err_rot, "deg")
+    return score
 
-    print("\nscore =", score)
+
+def auto_core(grid):
+    scores = []
+    for init_x in range(1, 10, 2):
+        for init_y in range(1, 10, 2):
+            for init_rotation in range(0, 181, 45):
+                for circular_size in range(3, 22, 5):
+                    for speed in range(3, 8, 2):
+                        Robot_init_pose = (init_x, init_y, init_rotation)
+                        Dh_circular = circular_size
+                        Robot_speed = speed / 10
+                        try:
+                            score = grade_core(grid, Robot_init_pose, Dh_circular, Robot_speed)
+                            scores.append(score)
+                            print(f'Score: {score}, on init at: {Robot_init_pose}, circular size: {Dh_circular}, speed: {Robot_speed}')
+                        except:
+                            print(f'Collision happened, on init at: {Robot_init_pose}, circular size: {Dh_circular}, speed: {Robot_speed}')
+                            pass
+    print(f'Mean Score: {mean(scores)}')
+
+
+def mean(numbers):
+    return float(sum(numbers)) / max(len(numbers), 1)
+
+
+if __name__ == "__main__":
+    grid = CozGrid(Map_filename)
+    auto_core(grid)
+

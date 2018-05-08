@@ -11,7 +11,7 @@ from particle_filter import *
 from utils import *
 
 
-# map you want to test 
+# map you want to test
 Map_filename = "map_test.json"
 
 # whether enable the GUI
@@ -19,7 +19,7 @@ Use_GUI = True
 
 
 """ Robot Motion parameters
-	Feel free to change these param for your debug
+    Feel free to change these param for your debug
 """
 # whether move in a circle: There are two robot motion pattern implemented:
 # 1. Robot move forward, if hit an obstacle, robot bounces to a random direction
@@ -118,7 +118,7 @@ class ParticleFilter:
 
 # thread to run particle filter when GUI is on
 class ParticleFilterThread(threading.Thread):
-    
+
     def __init__(self, particle_filter, gui):
         threading.Thread.__init__(self, daemon=True)
         self.filter = particle_filter
@@ -135,7 +135,7 @@ class ParticleFilterThread(threading.Thread):
 
 if __name__ == "__main__":
     grid = CozGrid(Map_filename)
-    
+
     # initial distribution assigns each particle an equal probability
     particles = Particle.create_random(PARTICLE_COUNT, grid)
     robbie = Robot(Robot_init_pose[0], Robot_init_pose[1], Robot_init_pose[2])
