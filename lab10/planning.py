@@ -7,7 +7,7 @@ import cozmo
 import asyncio
 
 from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id
-from cozmo.util import degrees, Angle, Pose
+from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps
 
 def astar(grid, heuristic):
     """Perform the A* search algorithm on a defined grid
@@ -115,26 +115,32 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
             grid.clearVisited()
             grid.clearPath()
             grid.setStart(position_to_grid(grid, robot.pose.position.x, robot.pose.position.y, grid_init_start_pose))
-            astar(grid, heuristic)
+            try:
+                astar(grid, heuristic)
+            except:
+                robot.say_text("Cannot go to that place").wait_for_completed()
+                return
             path_index = 0
             path = grid.getPath()
 
-        if path_index >= len(path): # At the goal position
+        path_index += 1
+        if path_index == len(path): # At the goal position
             if not found_goal:      # At the center of grid
+                path_index -= 1
                 robot.turn_in_place(Angle(degrees=30)).wait_for_completed()
+                continue
             else:                   # Arrived the final place
-                robot.say_text('Arrived').wait_for_completed()
                 robot.turn_in_place(Angle(degrees=goal_angle - robot.pose.rotation.angle_z.degrees)).wait_for_completed()
+                robot.say_text('Arrived').wait_for_completed()
                 break
 
-        current_pose = grid.getPath()[path_index]
-        next_pose = grid.getPath()[path_index + 1]
-        x = (next_pose[0] - current_pose[0]) * grid.scale
-        y = (next_pose[1] - current_pose[1]) * grid.scale
-        degree = (0 if x == 0 else math.degrees(math.atan2(y / x))) - robot.pose.rotation.angle_z.degrees
+        current_pose = path[path_index - 1]
+        next_pose = path[path_index]
+        x = (next_pose[0] - current_pose[0]) * grid.scale * 2
+        y = (next_pose[1] - current_pose[1]) * grid.scale * 2
+        degree = ((90 * y / abs(y)) if x == 0 else math.degrees(math.atan2(y, x))) - robot.pose.rotation.angle_z.degrees
         robot.turn_in_place(Angle(degrees=degree)).wait_for_completed()
-        robot.go_to_pose(Pose(math.sqrt(x**2 + y**2), 0, 0, angle_z=Angle(degrees=0)), relative_to_robot=True).wait_for_completed()
-        path_index += 1
+        robot.drive_straight(distance_mm(math.sqrt(x**2 + y**2)), speed_mmps(50), should_play_anim=False).wait_for_completed()
 
     stopevent.wait()
 
@@ -153,10 +159,10 @@ def search_cube(robot: cozmo.robot.Robot, grid: CozGrid):
 
 
 def add_obstacle(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose):
-    cube_size = grid.scale
-    for x in range(-cube_size, cube_size + 1, grid.scale):
-        for y in range(-cube_size, cube_size + 1, grid.scale):
-            (obstacle_x, obstacle_y) = rotate_point(x, y, cube.pose.rotation.angle_z.degrees)
+    # Cube is same size as grid scale but also need have another scale for robot
+    for x in range(-1, 2, 1):
+        for y in range(-1, 2, 1):
+            (obstacle_x, obstacle_y) = rotate_point(x * grid.scale * 2, y * grid.scale * 2, cube.pose.rotation.angle_z.degrees)
             grid.addObstacle(
                 position_to_grid(
                     grid,
@@ -170,15 +176,15 @@ def position_to_grid(grid: CozGrid, x, y, grid_init_start_pose):
     x = (int)(x)
     y = (int)(y)
     (init_x, init_y) = grid_init_start_pose
-    result = ((int)(x / grid.scale + init_x), (int)(y / grid.scale + init_y))
+    result = ((int)(x / (grid.scale * 2) + init_x), (int)(y / (grid.scale * 2) + init_y))
     return result
 
 
 def get_goal(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose):
-    cube_size = grid.scale
-    # Cube right and back will be the picture, choose right this time
-    (goal_x, goal_y) = rotate_point(0, -cube_size * 2, cube.pose.rotation.angle_z.degrees)
+    # Cube is same size as grid scale but also need have another scale for robot
     grid.clearGoals()
+    # Cube right and back will be the picture, choose right this time
+    (goal_x, goal_y) = rotate_point(- grid.scale * 2 * 2, 0, cube.pose.rotation.angle_z.degrees) # Back
     grid.addGoal(
         position_to_grid(
             grid,
@@ -207,7 +213,7 @@ class RobotThread(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
     def run(self):
-        cozmo.run_program(cozmoBehavior, use_viewer = True, force_viewer_on_top = True)
+        cozmo.run_program(cozmoBehavior)
 
 
 # If run as executable, start RobotThread and launch visualizer with empty grid file
