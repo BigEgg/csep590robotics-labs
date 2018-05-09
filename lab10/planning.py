@@ -172,9 +172,9 @@ def search_cube(robot: cozmo.robot.Robot, grid: CozGrid):
 
 
 def add_obstacle(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose):
-    # Cube is same size as 2 grid scale but also need have another scale for robot, so 1.5 * 2 grid scale
-    for x in range(-3, 4, 1):
-        for y in range(-3, 4, 1):
+    # Cube is same size as 2 grid scale but also need have another scale for robot, so 2 * 2 grid scale
+    for x in range(-2, 3, 2):
+        for y in range(-2, 3, 2):
             (obstacle_x, obstacle_y) = rotate_point(x * grid.scale, y * grid.scale, cube.pose.rotation.angle_z.degrees)
             grid.addObstacle(
                 position_to_grid(
@@ -197,7 +197,7 @@ def set_goal(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose)
     # Cube is same size as grid scale but also need have another scale for robot
     grid.clearGoals()
     # Cube right and back will be the picture, choose right this time
-    (goal_x, goal_y) = rotate_point(- grid.scale * 6, 0, cube.pose.rotation.angle_z.degrees) # Back
+    (goal_x, goal_y) = rotate_point(- grid.scale * 4, 0, cube.pose.rotation.angle_z.degrees) # Back
     goal_degree = cube.pose.rotation.angle_z.degrees
     if not grid.coordInBounds(
         position_to_grid(
@@ -205,7 +205,7 @@ def set_goal(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose)
             cube.pose.position.x + goal_x,
             cube.pose.position.y + goal_y,
             grid_init_start_pose)):
-        (goal_x, goal_y) = rotate_point(0, - grid.scale * 6, cube.pose.rotation.angle_z.degrees) # Right
+        (goal_x, goal_y) = rotate_point(0, - grid.scale * 4, cube.pose.rotation.angle_z.degrees) # Right
         goal_degree = cube.pose.rotation.angle_z.degrees + 90
 
     grid.addGoal(
