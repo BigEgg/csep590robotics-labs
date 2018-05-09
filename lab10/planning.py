@@ -158,6 +158,8 @@ def normalize_angle(degrees):
 
 def search_cube(robot: cozmo.robot.Robot, grid: CozGrid):
     global found_cubes
+    if len(found_cubes) == 3: # Already found all cubes
+        return None
     try:
         robot.say_text('searching').wait_for_completed()
         cube = robot.world.wait_for_observed_light_cube(timeout=3, include_existing=False)
