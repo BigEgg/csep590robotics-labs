@@ -133,7 +133,7 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
                 robot.turn_in_place(Angle(degrees=30)).wait_for_completed()
                 continue
             else:                   # Arrived the final place
-                robot.turn_in_place(Angle(degrees=goal_angle - robot.pose.rotation.angle_z.degrees)).wait_for_completed()
+                robot.turn_in_place(Angle(degrees=normalize_angle(goal_angle - robot.pose.rotation.angle_z.degrees))).wait_for_completed()
                 robot.say_text('Arrived').wait_for_completed()
                 break
 
@@ -142,10 +142,18 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
         x = (next_pose[0] - current_pose[0]) * grid.scale * 2
         y = (next_pose[1] - current_pose[1]) * grid.scale * 2
         degree = ((90 * y / abs(y)) if x == 0 else math.degrees(math.atan2(y, x))) - robot.pose.rotation.angle_z.degrees
-        robot.turn_in_place(Angle(degrees=degree)).wait_for_completed()
+        robot.turn_in_place(Angle(degrees=normalize_angle(degree))).wait_for_completed()
         robot.drive_straight(distance_mm(math.sqrt(x**2 + y**2)), speed_mmps(50), should_play_anim=False).wait_for_completed()
 
     stopevent.wait()
+
+
+def normalize_angle(degrees):
+    while degrees < -180:
+        degrees += 360
+    while degrees > 180:
+        degrees -= 360
+    return degrees
 
 
 def search_cube(robot: cozmo.robot.Robot, grid: CozGrid):
