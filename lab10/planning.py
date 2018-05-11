@@ -145,15 +145,15 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
                 robot.turn_in_place(Angle(degrees=-30)).wait_for_completed()
                 continue
             else:                   # Arrived the final place
-                goal_degree = goal_degrees[f"{robot_grid_x}, {robot_grid_y}"]
+                goal_degree = goal_degrees[f"{(robot_grid_x, robot_grid_y)}"]
                 robot.turn_in_place(Angle(degrees=normalize_angle(goal_degree - robot.pose.rotation.angle_z.degrees))).wait_for_completed()
                 robot.say_text('Arrived').wait_for_completed()
                 break
 
         current_pose = path[path_index - 1]
         next_pose = path[path_index]
-        robot_grid_x += next_pose[0] - current_pose[0]
-        robot_grid_y += next_pose[1] - current_pose[1]
+        robot_grid_x += int(next_pose[0] - current_pose[0])
+        robot_grid_y += int(next_pose[1] - current_pose[1])
 
         x = (next_pose[0] - current_pose[0]) * grid.scale
         y = (next_pose[1] - current_pose[1]) * grid.scale
@@ -189,7 +189,8 @@ def search_cube(robot: cozmo.robot.Robot, grid: CozGrid):
     except asyncio.TimeoutError:
         return None
 
-# Cube is same size as 2 grid scale but also need have another scale for robot, so 3 grid scale
+# Cube is same size as 3 grid scale but also need have another scale for robot, so total 5 grid scale
+# And the half range of it should be (5 - 1) / 2
 CUBE_SIZE = 2
 
 def add_obstacle(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose):
@@ -222,14 +223,14 @@ def set_goal(grid: CozGrid, cube: cozmo.objects.LightCube, grid_init_start_pose)
     goal_degree = cube.pose.rotation.angle_z.degrees
     (grid_x, grid_y) = position_to_grid(grid, cube.pose.position.x + goal_x, cube.pose.position.y + goal_y, grid_init_start_pose)
     if grid.coordInBounds((grid_x, grid_y)):
-        goal_degrees[f"{int(grid_x)}, {int(grid_y)}"] = goal_degree
+        goal_degrees[f"{(grid_x, grid_y)}"] = goal_degree
         grid.addGoal((grid_x, grid_y))
 
     (goal_x, goal_y) = related_to_world(0, - grid.scale * (CUBE_SIZE + 1), cube.pose.rotation.angle_z.degrees) # Right
     goal_degree = cube.pose.rotation.angle_z.degrees + 90
     (grid_x, grid_y) = position_to_grid(grid, cube.pose.position.x + goal_x, cube.pose.position.y + goal_y, grid_init_start_pose)
     if grid.coordInBounds((grid_x, grid_y)):
-        goal_degrees[f"{int(grid_x)}, {int(grid_y)}"] = goal_degree
+        goal_degrees[f"{(grid_x, grid_y)}"] = goal_degree
         grid.addGoal((grid_x, grid_y))
 
     return goal_degrees
