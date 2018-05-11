@@ -158,8 +158,11 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
         x = (next_pose[0] - current_pose[0]) * grid.scale
         y = (next_pose[1] - current_pose[1]) * grid.scale
         degree = ((90 * y / abs(y)) if x == 0 else math.degrees(math.atan2(y, x))) - robot.pose.rotation.angle_z.degrees
-        robot.turn_in_place(Angle(degrees=normalize_angle(degree))).wait_for_completed()
-        robot.drive_straight(distance_mm(math.sqrt(x**2 + y**2)), speed_mmps(50), should_play_anim=False).wait_for_completed()
+        # robot.turn_in_place(Angle(degrees=normalize_angle(degree))).wait_for_completed()
+        # robot.drive_straight(distance_mm(math.sqrt(x**2 + y**2)), speed_mmps(50), should_play_anim=False).wait_for_completed()
+
+        (x, y) = world_to_related(x, y, robot.pose.rotation.angle_z.degrees)
+        robot.go_to_pose(Pose(x, y, 0, angle_z=Angle(degrees=degree)), relative_to_robot=True).wait_for_completed()
 
     stopevent.wait()
 
@@ -237,6 +240,15 @@ def related_to_world(x, y, heading_deg):
     s = math.sin(math.radians(heading_deg))
     xr = x * c + y * -s
     yr = x * s + y * c
+    return xr, yr
+
+
+def world_to_related(x, y, heading_deg):
+    c = math.cos(math.radians(heading_deg))
+    s = math.sin(math.radians(heading_deg))
+
+    xr = x * c + y * s
+    yr = y * c - x * s
     return xr, yr
 
 ######################## DO NOT MODIFY CODE BELOW THIS LINE ####################################
