@@ -105,17 +105,19 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
     path = grid.getPath()
     path_index = 0
     grid_init_start_pose = grid.getStart()
+    (robot_grid_x, robot_grid_y) = grid.getStart()
 
     robot.set_head_angle(degrees(0)).wait_for_completed()
     robot.set_lift_height(1).wait_for_completed()
     robot.say_text('Game is on').wait_for_completed()
+
     while not stopevent.is_set():
         new_cube = search_cube(robot, grid)
         if not new_cube == None:
             grid.clearStart()
             grid.clearVisited()
             grid.clearPath()
-            grid.setStart(position_to_grid(grid, robot.pose.position.x, robot.pose.position.y, grid_init_start_pose))
+            grid.setStart((robot_grid_x, robot_grid_y))
             add_obstacle(grid, new_cube, grid_init_start_pose)    # Add the obstacle for all cubes that had been found
             if new_cube.cube_id == LightCube1Id:
                 new_cube.set_lights(cozmo.lights.blue_light)
@@ -140,7 +142,7 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
         if path_index == len(path): # At the goal position
             if not found_goal:      # At the center of grid
                 path_index -= 1
-                robot.turn_in_place(Angle(degrees=30)).wait_for_completed()
+                robot.turn_in_place(Angle(degrees=-30)).wait_for_completed()
                 continue
             else:                   # Arrived the final place
                 robot.turn_in_place(Angle(degrees=normalize_angle(goal_angle - robot.pose.rotation.angle_z.degrees))).wait_for_completed()
@@ -151,6 +153,8 @@ def cozmoBehavior(robot: cozmo.robot.Robot):
         next_pose = path[path_index]
         x = (next_pose[0] - current_pose[0]) * grid.scale * 2
         y = (next_pose[1] - current_pose[1]) * grid.scale * 2
+        robot_grid_x += next_pose[0] - current_pose[0]
+        robot_grid_y += next_pose[1] - current_pose[1]
         degree = ((90 * y / abs(y)) if x == 0 else math.degrees(math.atan2(y, x))) - robot.pose.rotation.angle_z.degrees
         robot.turn_in_place(Angle(degrees=normalize_angle(degree))).wait_for_completed()
         robot.drive_straight(distance_mm(math.sqrt(x**2 + y**2)), speed_mmps(50), should_play_anim=False).wait_for_completed()
@@ -172,9 +176,9 @@ def search_cube(robot: cozmo.robot.Robot, grid: CozGrid):
         return None
     try:
         robot.say_text('searching').wait_for_completed()
-        cube = robot.world.wait_for_observed_light_cube(timeout=3, include_existing=False)
+        cube = robot.world.wait_for_observed_light_cube(timeout=2, include_existing=False)
         if cube and cube.cube_id not in found_cubes:
-            found_cubes.append(cube.cube_id)        # Robot will always return found cubes
+            found_cubes.append(cube.cube_id)        # Robot will always return found cubes, need filter by hand
             robot.say_text('Found a Cube').wait_for_completed()
             return cube
     except asyncio.TimeoutError:
