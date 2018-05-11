@@ -17,35 +17,45 @@ def astar(grid, heuristic):
         heuristic -- supplied heuristic function
     """
     start_pose = grid.getStart()
-    goal_pose = grid.getGoals()[0]
+    goal_poses = grid.getGoals()
+    shortest_path = []
+    shortest_path_visited = set()
+    for goal_pose in goal_poses:
+        frontier = PriorityQueue()
+        frontier.put((0, start_pose))
+        came_from = {}
+        cost_so_far = {}
+        came_from[start_pose] = None
+        cost_so_far[start_pose] = 0
+        while not frontier.empty():
+            current = frontier.get()[1]
+            grid.addVisited(current)
 
-    frontier = PriorityQueue()
-    frontier.put((0, start_pose))
-    came_from = {}
-    cost_so_far = {}
-    came_from[start_pose] = None
-    cost_so_far[start_pose] = 0
+            if current == goal_pose:
+                path = reconstruct_path(came_from, start_pose, goal_pose)
+                if len(path) < len(shortest_path) or len(shortest_path) == 0:
+                    shortest_path = path
+                    shortest_path_visited = set(grid.getVisited())
+                continue
 
-    while not frontier.empty():
-        current = frontier.get()[1]
-        grid.addVisited(current)
+            for next in grid.getNeighbors(current):
+                next_pose, next_weight = next[0], next[1]
+                new_cost = cost_so_far[current] + next_weight
 
-        if current == goal_pose:
-            path = reconstruct_path(came_from, start_pose, goal_pose)
-            grid.setPath(path)
-            return
+                if next_pose not in cost_so_far or new_cost < cost_so_far[next_pose]:
+                    cost_so_far[next_pose] = new_cost
+                    priority = new_cost + heuristic(next_pose, goal_pose)
+                    frontier.put((priority, next_pose))
+                    came_from[next_pose] = current
+        grid.clearPath()
+        grid.clearVisited()
 
-        for next in grid.getNeighbors(current):
-            next_pose, next_weight = next[0], next[1]
-            new_cost = cost_so_far[current] + next_weight
-
-            if next_pose not in cost_so_far or new_cost < cost_so_far[next_pose]:
-                cost_so_far[next_pose] = new_cost
-                priority = new_cost + heuristic(next_pose, goal_pose)
-                frontier.put((priority, next_pose))
-                came_from[next_pose] = current
-
-    raise ValueError('No Path Found')
+    if len(shortest_path) > 0:
+        grid.setPath(shortest_path)
+        for visitied_point in shortest_path_visited:
+            grid.addVisited(visitied_point)
+    else:
+        raise ValueError('No Path Found')
 
 
 def reconstruct_path(came_from, start, goal):
