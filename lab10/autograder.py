@@ -18,7 +18,7 @@ class GradingThread(threading.Thread):
         print("Grader running...\n")
         astar(self.grid, heuristic)
         points = 0
-        
+
         if len(self.grid.getVisited()) <= self.solution['expanded'] and len(self.grid.getVisited()) > 0:
             print("Acceptable number of expanded nodes!")
             print("Expanded nodes: " + str(len(self.grid.getVisited())))
@@ -59,7 +59,7 @@ class GradingThread(threading.Thread):
             print("Yours: " + str(pathlen))
             print("Solution: " + str(self.solution['pathlen']))
             print("0/2.0 points")
-            
+
         print("\nScore = " + str(points) + "/3.0\n")
 
         print("Close visualizer window to exit")
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     else:
         print("correct usage: python3 autograder.py <testfile>")
         exit()
-            
+
     grid = CozGrid(test['mapfile'])
     visualizer = Visualizer(grid)
     updater = UpdateThread(visualizer)
