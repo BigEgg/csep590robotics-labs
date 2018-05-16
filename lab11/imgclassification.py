@@ -38,9 +38,11 @@ class ImageClassifier:
 
         # extract feature vector from image data
 
-        ########################
-        # YOUR CODE HERE
-        ########################
+        feature_data = []
+        for i in range(0, len(data)):
+            img = data[i,:,:,0]
+            features = feature.hog(img)
+            feature_data.append(features)
 
         # Please do not modify the return type below
         return (feature_data)
@@ -50,10 +52,8 @@ class ImageClassifier:
 
         # train model and save the trained model to self.classifier
 
-        ########################
-        # YOUR CODE HERE
-        ########################
-        pass
+        self.classifer = svm.LinearSVC().fit(train_data, train_labels)
+
 
     def predict_labels(self, data):
         # Please do not modify the header
@@ -61,9 +61,7 @@ class ImageClassifier:
         # predict labels of test data using trained model in self.classifier
         # the code below expects output to be stored in predicted_labels
 
-        ########################
-        # YOUR CODE HERE
-        ########################
+        predicted_labels = self.classifer.predict(data)
 
         # Please do not modify the return type below
         return predicted_labels
@@ -92,7 +90,7 @@ def main():
 
     # test model
     predicted_labels = img_clf.predict_labels(test_data)
-    print("\nTraining results")
+    print("\nTest results")
     print("=============================")
     print("Confusion Matrix:\n", metrics.confusion_matrix(test_labels, predicted_labels))
     print("Accuracy: ", metrics.accuracy_score(test_labels, predicted_labels))
