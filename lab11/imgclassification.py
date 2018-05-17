@@ -39,10 +39,17 @@ class ImageClassifier:
         # extract feature vector from image data
 
         feature_data = []
-        for i in range(0, len(data)):
-            img = data[i,:,:,0]
-            features = feature.hog(img)
-            feature_data.append(features)
+        for original_img in data:
+            img = color.rgb2gray(original_img)
+
+            blurred_img = filters.gaussian(img, sigma = 3)
+            # io.imsave(f'./hog/{i}_blurred.bmp', blurred_img)
+
+            (hog_features, hog_image) = feature.hog(img, block_norm="L2", orientations=9, pixels_per_cell=(25, 25),
+                    cells_per_block=(4, 4), visualise=True)
+            # hog_image_rescaled = exposure.rescale_intensity(hog_image, in_range=(0, 10))
+            # io.imsave(f'./hog/{i}.bmp', hog_image_rescaled)
+            feature_data.append(hog_features)
 
         # Please do not modify the return type below
         return (feature_data)
@@ -81,6 +88,8 @@ def main():
 
     # train model and test on training data
     img_clf.train_classifier(train_data, train_labels)
+    print("Training success")
+
     predicted_labels = img_clf.predict_labels(train_data)
     print("\nTraining results")
     print("=============================")
