@@ -47,7 +47,31 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.values = util.Counter()  # A Counter is a dict with default 0
 
         # Write value iteration code here
-        "*** YOUR CODE HERE ***"
+        for k in range(0, iterations):
+            current_values = self.values
+            self.values = util.Counter()
+            for state in mdp.getStates():
+                q_value, _ = self.__computeAction(state, current_values)
+                self.values[state] = q_value
+
+
+    def __computeAction(self, state, values):
+        best_q_value = 0
+        best_action = None
+
+        for action in self.mdp.getPossibleActions(state):
+            q_value = self.__computeQValue(state, action, values)
+            if best_action is None or best_q_value < q_value:
+                best_q_value = q_value
+                best_action = action
+        return best_q_value, best_action
+
+    def __computeQValue(self, state, action, values):
+        q_value = 0
+        for next_state, prob in self.mdp.getTransitionStatesAndProbs(state, action):
+            reward = self.mdp.getReward(state, action, next_state)
+            q_value += (self.discount * values[next_state] + reward) * prob
+        return q_value
 
     def getValue(self, state):
         """
@@ -60,8 +84,7 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.__computeQValue(state, action, self.values)
 
     def computeActionFromValues(self, state):
         """
@@ -72,8 +95,8 @@ class ValueIterationAgent(ValueEstimationAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return None.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        _, action = self.__computeAction(state, self.values)
+        return action
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
