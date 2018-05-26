@@ -28,11 +28,9 @@ async def run(robot: cozmo.robot.Robot):
     print("Press CTRL-C to quit")
 
     camera = robot.camera
-    print(camera.exposure_ms)
-    print(camera.gain)
-    # fixed_gain = (camera.config.min_gain + camera.config.max_gain) * 0.5
-    # fixed_exposure_ms = 10
-    camera.set_manual_exposure(20, camera.gain)
+    fixed_gain = camera.gain
+    fixed_exposure_ms = 20
+    camera.set_manual_exposure(fixed_exposure_ms, fixed_gain)
 
     await robot.say_text('Start Learning').wait_for_completed()
     img_clf = ImageClassifier()
